@@ -14,41 +14,47 @@
 
 'use strict';
 
+var _ = require('underscore');
 var assert = require('chai').assert;
 var config = require('lamassu-config');
+var apis = [];
 var fnTable = {};
 var app = { get:function(route, fn) {
                   fnTable[route] = fn;
                 }
           };
 var cfg;
+var tickers = ['bitpay', 'bitstamp', 'custom', 'mtgox'];
+
 
 
 describe('ticker test', function(){
 
   beforeEach(function(done) {
-    cfg = config.load('test');
+    cfg = config.load();
     done();
   });
 
 
-  it('should read ticker data from bitpay', function(done) {
+  it('should read ticker data from each exchange', function(done) {
     this.timeout(1000000);
-
-    cfg.exchanges.plugins.ticker = 'bitpay_ticker';
-    var api = require('../../lib/atm-api');
-    api.init(app, cfg);
-
-    // let ticker rate fetch finish...
-    setTimeout(function() {
+    _.each(tickers, function(ticker) {
+      cfg.exchanges.plugins.ticker = ticker + '_ticker';
+      apis[ticker] = require('../../lib/atm-api');
+      apis[ticker].init(app, cfg);
       fnTable['/poll/:currency']({params: {currency: 'USD'}}, {json: function(result) {
         console.log(result);
         assert.isNull(result.err);
         assert(parseFloat(result.rate, 10));
-        done();
+        if (ticker === 'mtgox') {
+          done();
+        }
       }
       });
-    }, 2000);
+    });
   });
 });
+
+
+
 

@@ -18,11 +18,12 @@
     "deepmerge": "~0.2.7",
     "underscore": "~1.5.2",
     "error-create": "0.0.0",
-    "date-utils": "~1.2.15"
+    "date-utils": "~1.2.15",
+    "bitstamp": "~0.1.3"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/pelger/microbial.git"
+    "url": "https://github.com/lamassu/lamassu-atm-protocol.git"
   },
   "devDependencies": {
     "grunt": "~0.4.1",
