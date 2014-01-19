@@ -27,8 +27,11 @@ var cfg;
 describe('ticker test', function(){
 
   beforeEach(function(done) {
-    cfg = config.load('test');
-    done();
+    config.load(function(err, result) {
+      assert.isNull(err);
+      cfg = result.config;
+      done();
+    });
   });
 
 

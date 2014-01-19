@@ -14,6 +14,7 @@
 
 'use strict';
 
+var assert = require('chai').assert;
 var http = require('http');
 var config = require('lamassu-config');
 var fnTable = {};
@@ -75,14 +76,18 @@ var mockRequest = function(method, path, data, callback, args) {
 describe('trade test', function(){
 
   beforeEach(function(done) {
-    cfg = config.load('test');
-    done();
+    config.load(function(err, result) {
+      assert.isNull(err);
+      cfg = result.config;
+      done();
+    });
   });
 
 
 
   it('should execute a trade against bitstamp', function(done) {
     this.timeout(1000000);
+
     cfg.exchanges.plugins.trade = 'bitstamp_trade';
     var api = require('../../lib/atm-api');
     api.init(app, cfg);
@@ -100,7 +105,7 @@ describe('trade test', function(){
       console.log(result);
     }});
 
-
+    setTimeout(function() { done(); }, 1000000);
     // check results and execute done()
   });
 });
