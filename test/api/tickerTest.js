@@ -17,7 +17,10 @@
 var assert = require('chai').assert;
 var config = require('lamassu-config');
 var fnTable = {};
-var app = { get:function(route, fn) {
+var app = { get: function(route, fn) {
+                  fnTable[route] = fn;
+                },
+            post: function(route, fn) {
                   fnTable[route] = fn;
                 }
           };
