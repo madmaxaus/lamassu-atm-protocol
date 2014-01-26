@@ -41,7 +41,7 @@ describe('ticker test', function(){
   it('should read ticker data from bitpay', function(done) {
     this.timeout(1000000);
 
-    cfg.exchanges.plugins.ticker = 'bitpay_ticker';
+    cfg.exchanges.plugins.ticker = 'bitpay';
     var api = require('../../lib/atm-api');
     api.init(app, cfg);
 

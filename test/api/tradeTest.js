@@ -94,7 +94,7 @@ describe('trade test', function(){
   it('should execute a trade against bitstamp', function(done) {
     this.timeout(1000000);
 
-    cfg.exchanges.plugins.trade = 'bitstamp_trade';
+    cfg.exchanges.plugins.trade = 'bitstamp';
     var api = require('../../lib/atm-api');
     api.init(app, cfg);
 
