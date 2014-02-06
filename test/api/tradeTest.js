@@ -100,7 +100,7 @@ describe('trade test', function(){
 
     // replace endpoints for trade and transfer
     api._tradeExchange.client._request = mockRequest;
-    api.setTransferDomain('localhost');
+    api._transferExchange.host = 'localhost';
 
     // schedule two trades this should result in a single consolidated trade hitting the trading system
     fnTable['/trade']({body: {fiat: 100, satoshis: 10, currency: 'USD'}}, {json: function(result) {
