@@ -8,6 +8,9 @@
   "contributors": [
     "Peter Elger <elger.peter@gmail.com> (http://peterelger.com/)"
   ],
+  "scripts": {
+    "test": "mocha --recursive test"
+  },
   "main": "lib/atm-api",
   "dependencies": {
     "lodash": "~2.4.1",
