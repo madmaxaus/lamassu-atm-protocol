@@ -27,26 +27,40 @@ var app = { get: function(route, fn) {
                 }
           };
 var cfg;
-var mock = hock.createHock();
+
+var blockchainMock = hock.createHock();
+var bitpayMock = hock.createHock();
 
 
 describe('ticker test', function(){
 
   beforeEach(function(done) {
-    createServer(mock.handler, function(err, server) {
-      server.unref();
+    createServer(blockchainMock.handler, function (err, blockchain) {
+      createServer(bitpayMock.handler, function(err_, bitpay) {
+        config.load(function(err, result) {
+          assert.isNull(err);
+          cfg = result.config;
 
-      config.load(function(err, result) {
-        assert.isNull(err);
-        cfg = result.config;
-        cfg.exchanges.plugins.current.ticker = 'bitpay';
-        cfg.exchanges.plugins.current.trade = null;
-        cfg.exchanges.plugins.settings.bitpay = {
-          host: 'localhost',
-          port: server.address().port,
-          rejectUnauthorized: false
-        };
-        done();
+          cfg.exchanges.plugins.current.ticker = 'bitpay';
+          cfg.exchanges.plugins.current.trade = null;
+          cfg.exchanges.plugins.settings.bitpay = {
+            host: 'localhost',
+            port: bitpay.address().port,
+            rejectUnauthorized: false
+          };
+
+          cfg.exchanges.plugins.current.transfer = 'blockchain';
+          cfg.exchanges.plugins.settings.blockchain = {
+            host: 'localhost',
+            port: blockchain.address().port,
+            rejectUnauthorized: false,
+            password: 'baz',
+            fromAddress: 'f00b4z',
+            guid: 'foo'
+          };
+
+          done();
+        });
       });
     });
   });
@@ -55,12 +69,20 @@ describe('ticker test', function(){
   it('should read ticker data from bitpay', function(done) {
     this.timeout(1000000);
 
-    mock
+    bitpayMock
       .get('/api/rates')
       .reply(200, [
         { code: 'EUR', rate: 1337 },
         { code: 'USD', rate: 100 }
       ]);
+
+    blockchainMock
+      .get('/merchant/foo/address_balance?address=f00b4z&confirmations=0&password=baz')
+      .reply(200, { balance: 100000000, total_received: 100000000 })
+
+      .get('/merchant/foo/address_balance?address=f00b4z&confirmations=1&password=baz')
+      .reply(200, { balance: 100000000, total_received: 100000000 });
+    // That's 1 BTC.
 
     var api = require('../../lib/atm-api');
     api.init(app, cfg);
@@ -70,6 +92,7 @@ describe('ticker test', function(){
       fnTable['/poll/:currency']({params: {currency: 'USD'}}, {json: function(result) {
         assert.isNull(result.err);
         assert.equal(parseFloat(result.rate, 10), 100);
+        assert.equal(result.fiat, 100 / cfg.exchanges.settings.lowBalanceMargin);
         done();
       }
       });
