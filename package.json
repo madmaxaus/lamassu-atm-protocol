@@ -26,7 +26,8 @@
     "lamassu-bitpay": "~0.0.1",
     "lamassu-bitstamp": "~0.0.1",
     "lamassu-blockchain": "~0.0.1",
-    "lamassu-mtgox": "~0.0.1"
+    "lamassu-mtgox": "~0.0.1",
+    "express": "^3.4.8"
   },
   "repository": {
     "type": "git",

@@ -18,27 +18,32 @@ var hock = require('hock');
 var createServer = require('../helpers/create-https-server.js');
 var assert = require('chai').assert;
 var config = require('lamassu-config');
-var fnTable = {};
-var app = { get: function(route, fn) {
-                  fnTable[route] = fn;
-                },
-            post: function(route, fn) {
-                  fnTable[route] = fn;
-                }
-          };
+
 var cfg;
 
 var blockchainMock = hock.createHock();
 var bitpayMock = hock.createHock();
+
+var testTicker = hock.createHock();
+
+var testPort = 4000;
+var Client = require('../helpers/client');
+var app = new Client(testPort);
+
 
 
 describe('ticker test', function(){
 
   beforeEach(function(done) {
     createServer(blockchainMock.handler, function (err, blockchain) {
+      assert.isNull(err);
+
       createServer(bitpayMock.handler, function(err_, bitpay) {
-        config.load(function(err, result) {
-          assert.isNull(err);
+        assert.isNull(err_);
+
+        config.load(function(err__, result) {
+          assert.isNull(err__);
+
           cfg = result.config;
 
           cfg.exchanges.plugins.current.ticker = 'bitpay';
@@ -89,14 +94,16 @@ describe('ticker test', function(){
 
     // let ticker rate fetch finish...
     setTimeout(function() {
-      fnTable['/poll/:currency']({params: {currency: 'USD'}}, {json: function(result) {
+      // app.getRoute => http_method, route
+      var route = app.getRoute('get', '/poll/:currency');
+      
+      route({params: {currency: 'USD'}}, {json: function (result) {
         assert.isNull(result.err);
         assert.equal(parseFloat(result.rate, 10), 100);
         assert.equal(result.fiat, 100 / cfg.exchanges.settings.lowBalanceMargin);
+
         done();
-      }
-      });
+      }});
     }, 2000);
   });
 });
-
