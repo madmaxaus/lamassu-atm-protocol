@@ -27,14 +27,18 @@ var bitpayMock = hock.createHock();
 var testTicker = hock.createHock();
 
 var testPort = 4000;
-var Client = require('../helpers/client');
-var app = new Client(testPort);
+var HttpDevServer = require('../helpers/http-server');
+var app = new HttpDevServer(testPort);
+var jsonquest = require('jsonquest');
 
 
 
 describe('ticker test', function(){
 
   beforeEach(function(done) {
+
+    app.listen();
+
     createServer(blockchainMock.handler, function (err, blockchain) {
       assert.isNull(err);
 
@@ -93,17 +97,23 @@ describe('ticker test', function(){
     api.init(app, cfg);
 
     // let ticker rate fetch finish...
-    setTimeout(function() {
-      // app.getRoute => http_method, route
-      var route = app.getRoute('get', '/poll/:currency');
-      
-      route({params: {currency: 'USD'}}, {json: function (result) {
-        assert.isNull(result.err);
-        assert.equal(parseFloat(result.rate, 10), 100);
-        assert.equal(result.fiat, 100 / cfg.exchanges.settings.lowBalanceMargin);
+    setTimeout(function () {
+      jsonquest({
+        host: 'localhost',
+        port: testPort,
+        path: '/poll/:currency'.replace(':currency', 'USD'),
+        method: 'GET',
+        protocol: 'http'
+      }, function (err, res, body) {
+        assert.isNull(err);
+        assert.equal(res.statusCode, 200);
+
+        assert.isNull(body.err);
+        assert.equal(Number(body.rate), 100);
+        assert.equal(body.fiat, 100 / cfg.exchanges.settings.lowBalanceMargin);
 
         done();
-      }});
+      });      
     }, 2000);
   });
 });
