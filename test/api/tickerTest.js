@@ -24,12 +24,10 @@ var cfg;
 var blockchainMock = hock.createHock();
 var bitpayMock = hock.createHock();
 
-var testTicker = hock.createHock();
-
-var testPort = 4000;
-var HttpDevServer = require('../helpers/http-server');
-var app = new HttpDevServer(testPort);
 var jsonquest = require('jsonquest');
+var express = require('express');
+var app = express();
+var testPort = 4000;
 
 
 
@@ -37,7 +35,7 @@ describe('ticker test', function(){
 
   beforeEach(function(done) {
 
-    app.listen();
+    app.listen(testPort);
 
     createServer(blockchainMock.handler, function (err, blockchain) {
       assert.isNull(err);
@@ -88,7 +86,6 @@ describe('ticker test', function(){
     blockchainMock
       .get('/merchant/foo/address_balance?address=f00b4z&confirmations=0&password=baz')
       .reply(200, { balance: 100000000, total_received: 100000000 })
-
       .get('/merchant/foo/address_balance?address=f00b4z&confirmations=1&password=baz')
       .reply(200, { balance: 100000000, total_received: 100000000 });
     // That's 1 BTC.
@@ -101,7 +98,7 @@ describe('ticker test', function(){
       jsonquest({
         host: 'localhost',
         port: testPort,
-        path: '/poll/:currency'.replace(':currency', 'USD'),
+        path: '/poll/USD',//:currency
         method: 'GET',
         protocol: 'http'
       }, function (err, res, body) {
@@ -113,7 +110,7 @@ describe('ticker test', function(){
         assert.equal(body.fiat, 100 / cfg.exchanges.settings.lowBalanceMargin);
 
         done();
-      });      
+      });
     }, 2000);
   });
 });

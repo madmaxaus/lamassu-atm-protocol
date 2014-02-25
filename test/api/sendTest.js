@@ -13,3 +13,10 @@
  */
 
 'use strict';
+
+var hock = require('hock');
+var createServer = require('../helpers/create-https-server.js');
+var assert = require('chai').assert;
+var config = require('lamassu-config');
+
+
