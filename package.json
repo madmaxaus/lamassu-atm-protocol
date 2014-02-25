@@ -25,8 +25,8 @@
     "pg": "~2.11.1",
     "lamassu-bitpay": "~0.0.1",
     "lamassu-bitstamp": "~0.0.1",
-    "lamassu-blockchain": "~0.0.1",
-    "lamassu-mtgox": "~0.0.1"
+    "lamassu-mtgox": "~0.0.1",
+    "lamassu-blockchain": "0.0.4"
   },
   "repository": {
     "type": "git",
@@ -41,6 +41,8 @@
     "mocha": "~1.13.0",
     "grunt-mocha-test": "~0.7.0",
     "grunt-mocha-cov": "0.0.7",
-    "hock": "git+https://github.com/mmalecki/hock.git#no-http-server"
+    "hock": "git+https://github.com/mmalecki/hock.git#no-http-server",
+    "express": "^3.4.8",
+    "jsonquest": "^0.2.2"
   }
 }

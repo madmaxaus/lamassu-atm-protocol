@@ -18,27 +18,34 @@ var hock = require('hock');
 var createServer = require('../helpers/create-https-server.js');
 var assert = require('chai').assert;
 var config = require('lamassu-config');
-var fnTable = {};
-var app = { get: function(route, fn) {
-                  fnTable[route] = fn;
-                },
-            post: function(route, fn) {
-                  fnTable[route] = fn;
-                }
-          };
+
 var cfg;
 
 var blockchainMock = hock.createHock();
 var bitpayMock = hock.createHock();
 
+var jsonquest = require('jsonquest');
+var express = require('express');
+var app = express();
+var testPort = 4000;
+
+
 
 describe('ticker test', function(){
 
   beforeEach(function(done) {
+
+    app.listen(testPort);
+
     createServer(blockchainMock.handler, function (err, blockchain) {
+      assert.isNull(err);
+
       createServer(bitpayMock.handler, function(err_, bitpay) {
-        config.load(function(err, result) {
-          assert.isNull(err);
+        assert.isNull(err_);
+
+        config.load(function(err__, result) {
+          assert.isNull(err__);
+
           cfg = result.config;
 
           cfg.exchanges.plugins.current.ticker = 'bitpay';
@@ -79,7 +86,6 @@ describe('ticker test', function(){
     blockchainMock
       .get('/merchant/foo/address_balance?address=f00b4z&confirmations=0&password=baz')
       .reply(200, { balance: 100000000, total_received: 100000000 })
-
       .get('/merchant/foo/address_balance?address=f00b4z&confirmations=1&password=baz')
       .reply(200, { balance: 100000000, total_received: 100000000 });
     // That's 1 BTC.
@@ -88,15 +94,23 @@ describe('ticker test', function(){
     api.init(app, cfg);
 
     // let ticker rate fetch finish...
-    setTimeout(function() {
-      fnTable['/poll/:currency']({params: {currency: 'USD'}}, {json: function(result) {
-        assert.isNull(result.err);
-        assert.equal(parseFloat(result.rate, 10), 100);
-        assert.equal(result.fiat, 100 / cfg.exchanges.settings.lowBalanceMargin);
+    setTimeout(function () {
+      jsonquest({
+        host: 'localhost',
+        port: testPort,
+        path: '/poll/USD',//:currency
+        method: 'GET',
+        protocol: 'http'
+      }, function (err, res, body) {
+        assert.isNull(err);
+        assert.equal(res.statusCode, 200);
+
+        assert.isNull(body.err);
+        assert.equal(Number(body.rate), 100);
+        assert.equal(body.fiat, 100 / cfg.exchanges.settings.lowBalanceMargin);
+
         done();
-      }
       });
     }, 2000);
   });
 });
-
