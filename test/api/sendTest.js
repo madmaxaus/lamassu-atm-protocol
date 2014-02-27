@@ -24,10 +24,10 @@ var config = require('lamassu-config');
 var fnTable = {};
 
 var app = {
-  get: function (route, fn) {
+  get: function(route, fn) {
       fnTable[route] = fn;
     },
-  post: function (route, fn) {
+  post: function(route, fn) {
       fnTable[route] = fn;
     }
 };
@@ -38,14 +38,14 @@ var port;
 var blockchainMock = hock.createHock();
 
 
-describe('send test', function () {
+describe('send test', function() {
 
-  beforeEach(function (done) {
+  beforeEach(function(done) {
 
     async.parallel({
       blockchain: async.apply(createServer, blockchainMock.handler),
       config: config.load
-    }, function (err, results) {
+    }, function(err, results) {
       assert.isNull(err);
 
       cfg = results.config.config;
@@ -65,7 +65,7 @@ describe('send test', function () {
     });
   });
 
-  it('should send to blockchain', function (done) {
+  it('should send to blockchain', function(done) {
     this.timeout(1000000);
     
     var satoshis = {
@@ -108,8 +108,8 @@ describe('send test', function () {
       }
     };
 
-    setTimeout(function () {
-      fnTable['/send'](params, {json: function (result) {
+    setTimeout(function() {
+      fnTable['/send'](params, {json: function(result) {
           assert.isNull(result.err);
           assert.equal(hash, result.results);
           done();
