@@ -15,6 +15,7 @@
 'use strict';
 
 var hock = require('hock');
+var async = require('async');
 var createServer = require('../helpers/create-https-server.js');
 var assert = require('chai').assert;
 var config = require('lamassu-config');
@@ -37,38 +38,34 @@ describe('ticker test', function(){
 
     app.listen(testPort);
 
-    createServer(blockchainMock.handler, function (err, blockchain) {
+    async.parallel({
+      blockchain: async.apply(createServer, blockchainMock.handler),
+      bitpay: async.apply(createServer, bitpayMock.handler),
+      config: config.load
+    }, function (err, results) {
       assert.isNull(err);
 
-      createServer(bitpayMock.handler, function(err_, bitpay) {
-        assert.isNull(err_);
+      cfg = results.config.config;
 
-        config.load(function(err__, result) {
-          assert.isNull(err__);
+      cfg.exchanges.plugins.current.ticker = 'bitpay';
+      cfg.exchanges.plugins.current.trade = null;
+      cfg.exchanges.plugins.settings.bitpay = {
+        host: 'localhost',
+        port: results.bitpay.address().port,
+        rejectUnauthorized: false
+      };
 
-          cfg = result.config;
+      cfg.exchanges.plugins.current.transfer = 'blockchain';
+      cfg.exchanges.plugins.settings.blockchain = {
+        host: 'localhost',
+        port: results.blockchain.address().port,
+        rejectUnauthorized: false,
+        password: 'baz',
+        fromAddress: 'f00b4z',
+        guid: 'foo'
+      };
 
-          cfg.exchanges.plugins.current.ticker = 'bitpay';
-          cfg.exchanges.plugins.current.trade = null;
-          cfg.exchanges.plugins.settings.bitpay = {
-            host: 'localhost',
-            port: bitpay.address().port,
-            rejectUnauthorized: false
-          };
-
-          cfg.exchanges.plugins.current.transfer = 'blockchain';
-          cfg.exchanges.plugins.settings.blockchain = {
-            host: 'localhost',
-            port: blockchain.address().port,
-            rejectUnauthorized: false,
-            password: 'baz',
-            fromAddress: 'f00b4z',
-            guid: 'foo'
-          };
-
-          done();
-        });
-      });
+      done();
     });
   });
 
