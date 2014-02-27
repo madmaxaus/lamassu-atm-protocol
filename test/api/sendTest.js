@@ -14,6 +14,7 @@
 
 'use strict';
 
+var crypto = require('crypto');
 var async = require('async');
 var hock = require('hock');
 var createServer = require('../helpers/create-https-server.js');
@@ -73,17 +74,17 @@ describe('send test', function () {
     };
 
     // some hash for transaction
-    var hash = 'AHAHAHAH';
+    var hash = crypto.createHash(cfg.updater.extractor.hashAlg).digest('hex');
 
     // transaction
     var trans = {
       txs: {
-        res : {
+        res: {
           hash: hash,
           out: {
             output: {
               value: satoshis,
-              addr: 'localhost:' + port
+              addr: '3acf1633-db4d-44a9-9013-b13e85405404'
             }
           }
         }
