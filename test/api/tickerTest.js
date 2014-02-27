@@ -42,7 +42,7 @@ describe('ticker test', function(){
       blockchain: async.apply(createServer, blockchainMock.handler),
       bitpay: async.apply(createServer, bitpayMock.handler),
       config: config.load
-    }, function (err, results) {
+    }, function(err, results) {
       assert.isNull(err);
 
       cfg = results.config.config;
@@ -91,7 +91,7 @@ describe('ticker test', function(){
     api.init(app, cfg);
 
     // let ticker rate fetch finish...
-    setTimeout(function () {
+    setTimeout(function() {
       jsonquest({
         host: 'localhost',
         port: testPort,
