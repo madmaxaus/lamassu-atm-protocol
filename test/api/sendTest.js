@@ -14,9 +14,106 @@
 
 'use strict';
 
+var async = require('async');
 var hock = require('hock');
 var createServer = require('../helpers/create-https-server.js');
 var assert = require('chai').assert;
 var config = require('lamassu-config');
 
+var fnTable = {};
 
+var app = {
+  get: function (route, fn) {
+      fnTable[route] = fn;
+    },
+  post: function (route, fn) {
+      fnTable[route] = fn;
+    }
+};
+
+var cfg;
+var port;
+
+var blockchainMock = hock.createHock();
+
+
+describe('send test', function () {
+
+  beforeEach(function (done) {
+
+    async.parallel({
+      blockchain: async.apply(createServer, blockchainMock.handler),
+      config: config.load
+    }, function (err, results) {
+      assert.isNull(err);
+
+      cfg = results.config.config;
+      port = results.blockchain.address().port;
+
+      cfg.exchanges.plugins.current.transfer = 'blockchain';
+      cfg.exchanges.plugins.settings.blockchain = {
+        host: 'localhost',
+        port: results.blockchain.address().port,
+        rejectUnauthorized: false,
+        password: 'baz',
+        fromAddress: 'f00b4z',
+        guid: 'foo'
+      };
+
+      done();
+    });
+  });
+
+  it('should send to blockchain', function (done) {
+    this.timeout(1000000);
+    
+    var satoshis = {
+      transferBalance: 100000000,
+      tradeBalance: null
+    };
+
+    // some hash for transaction
+    var hash = 'AHAHAHAH';
+
+    // transaction
+    var trans = {
+      txs: {
+        res : {
+          hash: hash,
+          out: {
+            output: {
+              value: satoshis,
+              addr: 'localhost:' + port
+            }
+          }
+        }
+      }
+    };
+
+    blockchainMock
+      .get('/address/f00b4z?format=json&limit=10&password=baz')
+      .reply(200, trans)
+      .post('/merchant/foo/payment?to=localhost%3A' + port + '&amount=&from=f00b4z&password=baz')
+      .reply(200, {'tx_hash': hash});
+
+
+    var api = require('../../lib/atm-api');
+    api.init(app, cfg);
+
+    var params = {
+      body: {
+        address: 'localhost:' + port,
+        satoshis: satoshis
+      }
+    };
+
+    setTimeout(function () {
+      fnTable['/send'](params, {json: function (result) {
+          assert.isNull(result.err);
+          assert.equal(hash, result.results);
+          done();
+        }
+      });
+    }, 2000);
+  });
+});
