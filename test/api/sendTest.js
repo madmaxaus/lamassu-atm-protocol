@@ -84,7 +84,7 @@ describe('send test', function() {
           out: {
             output: {
               value: satoshis,
-              addr: '3acf1633-db4d-44a9-9013-b13e85405404'
+              addr: '1LhkU2R8nJaU8Zj6jB8VjWrMpvVKGqCZ64'
             }
           }
         }
