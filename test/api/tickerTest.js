@@ -18,7 +18,10 @@ var hock = require('hock');
 var async = require('async');
 var createServer = require('../helpers/create-https-server.js');
 var assert = require('chai').assert;
-var config = require('lamassu-config');
+
+var LamassuConfig = require('lamassu-config');
+var con = 'psql://lamassu:lamassu@localhost/lamassu';
+var config = new LamassuConfig(con);
 
 var cfg;
 
@@ -41,7 +44,7 @@ describe('ticker test', function(){
     async.parallel({
       blockchain: async.apply(createServer, blockchainMock.handler),
       bitpay: async.apply(createServer, bitpayMock.handler),
-      config: config.load
+      config: config.load.bind(config)
     }, function(err, results) {
       assert.isNull(err);
 
@@ -61,8 +64,8 @@ describe('ticker test', function(){
         port: results.blockchain.address().port,
         rejectUnauthorized: false,
         password: 'baz',
-        fromAddress: 'f00b4z',
-        guid: 'foo'
+        fromAddress: '1LhkU2R8nJaU8Zj6jB8VjWrMpvVKGqCZ64',
+        guid: '3acf1633-db4d-44a9-9013-b13e85405404'
       };
 
       done();
@@ -81,9 +84,9 @@ describe('ticker test', function(){
       ]);
 
     blockchainMock
-      .get('/merchant/foo/address_balance?address=f00b4z&confirmations=0&password=baz')
+      .get('/merchant/3acf1633-db4d-44a9-9013-b13e85405404/address_balance?address=1LhkU2R8nJaU8Zj6jB8VjWrMpvVKGqCZ64&confirmations=0&password=baz')
       .reply(200, { balance: 100000000, total_received: 100000000 })
-      .get('/merchant/foo/address_balance?address=f00b4z&confirmations=1&password=baz')
+      .get('/merchant/3acf1633-db4d-44a9-9013-b13e85405404/address_balance?address=1LhkU2R8nJaU8Zj6jB8VjWrMpvVKGqCZ64&confirmations=1&password=baz')
       .reply(200, { balance: 100000000, total_received: 100000000 });
     // That's 1 BTC.
 
@@ -103,7 +106,8 @@ describe('ticker test', function(){
         assert.equal(res.statusCode, 200);
 
         assert.isNull(body.err);
-        assert.equal(Number(body.rate), 100);
+        assert.equal(Number(body.rate) > 0, true);
+        console.log(100 / cfg.exchanges.settings.lowBalanceMargin, body.fiat);
         assert.equal(body.fiat, 100 / cfg.exchanges.settings.lowBalanceMargin);
 
         done();

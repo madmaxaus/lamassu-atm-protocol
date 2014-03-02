@@ -18,7 +18,10 @@ var async = require('async');
 var hock = require('hock');
 var createServer = require('../helpers/create-https-server.js');
 var assert = require('chai').assert;
-var config = require('lamassu-config');
+
+var LamassuConfig = require('lamassu-config');
+var con = 'psql://lamassu:lamassu@localhost/lamassu';
+var config = new LamassuConfig(con);
 
 var fnTable = {};
 
@@ -48,7 +51,9 @@ describe('send test', function() {
 
     async.parallel({
       blockchain: async.apply(createServer, blockchainMock.handler),
-      config: config.load
+      config: function(cb) {
+        config.load(cb);
+      }
     }, function(err, results) {
       assert.isNull(err);
 
@@ -91,9 +96,12 @@ describe('send test', function() {
       'notice': 'Some funds are pending confirmation and cannot be spent yet (Value 0.001 BTC)'
     };
 
+    setTimeout(function() {
+
+    }, 5000);
+
     blockchainMock
       .get('/address/1LhkU2R8nJaU8Zj6jB8VjWrMpvVKGqCZ64?format=json&limit=10&password=baz')
-      .max(100)
       .reply(200, address_reponse)
       .post('/merchant/3acf1633-db4d-44a9-9013-b13e85405404/payment?to=1LhkU2R8nJaU8Zj6jB8VjWrMpvVKGqCZ64&amount=100000000&from=1LhkU2R8nJaU8Zj6jB8VjWrMpvVKGqCZ64&password=baz')
       .reply(200, payment_response);

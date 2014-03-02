@@ -1,7 +1,11 @@
 'use strict';
 
 var assert = require('chai').assert;
-var config = require('lamassu-config');
+
+var LamassuConfig = require('lamassu-config');
+var con = 'psql://lamassu:lamassu@localhost/lamassu';
+var config = new LamassuConfig(con);
+
 var api = require('../lib/api/api.js');
 var RATE = 100;
 var SATOSHI_FACTOR = Math.pow(10, 8);
