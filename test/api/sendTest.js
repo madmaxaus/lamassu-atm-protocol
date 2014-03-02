@@ -14,7 +14,6 @@
 
 'use strict';
 
-var crypto = require('crypto');
 var async = require('async');
 var hock = require('hock');
 var createServer = require('../helpers/create-https-server.js');
@@ -37,6 +36,11 @@ var port;
 
 var blockchainMock = hock.createHock();
 
+// blockchain info
+var guid = '3acf1633-db4d-44a9-9013-b13e85405404';
+var pwd = 'baz';
+var bitAddr = '1LhkU2R8nJaU8Zj6jB8VjWrMpvVKGqCZ64';
+
 
 describe('send test', function() {
 
@@ -56,9 +60,9 @@ describe('send test', function() {
         host: 'localhost',
         port: results.blockchain.address().port,
         rejectUnauthorized: false,
-        password: 'baz',
-        fromAddress: 'f00b4z',
-        guid: 'foo'
+        password: pwd,
+        fromAddress: bitAddr,
+        guid: guid
       };
 
       done();
@@ -67,35 +71,32 @@ describe('send test', function() {
 
   it('should send to blockchain', function(done) {
     this.timeout(1000000);
-    
-    var satoshis = {
-      transferBalance: 100000000,
-      tradeBalance: null
+
+    var amount= 100000000;
+
+    var address_reponse = {
+      'hash160':'660d4ef3a743e3e696ad990364e555c271ad504b',
+      'address': bitAddr,
+      'n_tx': 1,
+      'n_unredeemed': 1,
+      'total_received': 0,
+      'total_sent': 0,
+      'final_balance': 0,
+      'txs': []
     };
 
-    // some hash for transaction
-    var hash = crypto.createHash(cfg.updater.extractor.hashAlg).digest('hex');
-
-    // transaction
-    var trans = {
-      txs: {
-        res: {
-          hash: hash,
-          out: {
-            output: {
-              value: satoshis,
-              addr: '1LhkU2R8nJaU8Zj6jB8VjWrMpvVKGqCZ64'
-            }
-          }
-        }
-      }
+    var payment_response = { 
+      'message': 'Sent 0.1 BTC to 1LhkU2R8nJaU8Zj6jB8VjWrMpvVKGqCZ64',
+      'tx_hash': 'f322d01ad784e5deeb25464a5781c3b20971c1863679ca506e702e3e33c18e9c',
+      'notice': 'Some funds are pending confirmation and cannot be spent yet (Value 0.001 BTC)'
     };
 
     blockchainMock
-      .get('/address/f00b4z?format=json&limit=10&password=baz')
-      .reply(200, trans)
-      .post('/merchant/foo/payment?to=localhost%3A' + port + '&amount=&from=f00b4z&password=baz')
-      .reply(200, {'tx_hash': hash});
+      .get('/address/1LhkU2R8nJaU8Zj6jB8VjWrMpvVKGqCZ64?format=json&limit=10&password=baz')
+      .max(100)
+      .reply(200, address_reponse)
+      .post('/merchant/3acf1633-db4d-44a9-9013-b13e85405404/payment?to=1LhkU2R8nJaU8Zj6jB8VjWrMpvVKGqCZ64&amount=100000000&from=1LhkU2R8nJaU8Zj6jB8VjWrMpvVKGqCZ64&password=baz')
+      .reply(200, payment_response);
 
 
     var api = require('../../lib/atm-api');
@@ -103,15 +104,15 @@ describe('send test', function() {
 
     var params = {
       body: {
-        address: 'localhost:' + port,
-        satoshis: satoshis
+        address: bitAddr,
+        satoshis: amount
       }
     };
 
     setTimeout(function() {
       fnTable['/send'](params, {json: function(result) {
           assert.isNull(result.err);
-          assert.equal(hash, result.results);
+          assert.equal(payment_response.tx_hash, result.results);
           done();
         }
       });
