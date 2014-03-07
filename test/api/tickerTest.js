@@ -50,6 +50,8 @@ describe('ticker test', function(){
 
       cfg = results.config.config;
 
+      cfg.exchanges.settings.commission = 1;
+
       cfg.exchanges.plugins.current.ticker = 'bitpay';
       cfg.exchanges.plugins.current.trade = null;
       cfg.exchanges.plugins.settings.bitpay = {
