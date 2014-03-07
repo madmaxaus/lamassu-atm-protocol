@@ -20,7 +20,7 @@
     "error-create": "0.0.0",
     "date-utils": "~1.2.15",
     "bitstamp": "~0.1.3",
-    "lamassu-config": "0.0.1",
+    "lamassu-config": "git+https://github.com/lamassu/lamassu-config.git",
     "winston": "~0.7.2",
     "pg": "~2.11.1",
     "lamassu-bitpay": "~0.0.1",

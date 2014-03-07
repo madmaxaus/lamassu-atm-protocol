@@ -15,8 +15,12 @@
 'use strict';
 
 var assert = require('chai').assert;
-var https = require('https');
-var config = require('lamassu-config');
+var hock = require('hock');
+
+var LamassuConfig = require('lamassu-config');
+var con = 'psql://lamassu:lamassu@localhost/lamassu';
+var config = new LamassuConfig(con);
+
 var fnTable = {};
 var app = { get: function(route, fn) {
                   fnTable[route] = fn;
@@ -64,5 +68,3 @@ describe('trade test', function(){
     // check results and execute done()
   });
 });
-
-
