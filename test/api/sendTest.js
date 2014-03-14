@@ -96,10 +96,6 @@ describe('send test', function() {
       'notice': 'Some funds are pending confirmation and cannot be spent yet (Value 0.001 BTC)'
     };
 
-    setTimeout(function() {
-
-    }, 5000);
-
     blockchainMock
       .get('/address/1LhkU2R8nJaU8Zj6jB8VjWrMpvVKGqCZ64?format=json&limit=10&password=baz')
       .reply(200, address_reponse)
